@@ -1,19 +1,36 @@
 import streamlit as st
 import random
 
-# ----------------- 사용자 로그인 -------------------
 st.title("📘 영어 단어 퀴즈 프로그램")
 
+# 사용자 이름과 비밀번호 입력
 username = st.text_input("사용자 이름을 입력하세요")
-if not username:
-    st.warning("사용자 이름을 먼저 입력해 주세요.")
+password = st.text_input("비밀번호를 입력하세요", type="password")
+
+if not username or not password:
+    st.warning("사용자 이름과 비밀번호를 모두 입력해 주세요.")
     st.stop()
 
-# ----------------- 사용자별 단어장 및 오답 저장 구조 -------------------
+# 세션 상태에 사용자 데이터 구조 초기화
+if 'users' not in st.session_state:
+    st.session_state.users = {}  # {username: password}
 if 'wordbook' not in st.session_state:
     st.session_state.wordbook = {}
 if 'wrong_answers' not in st.session_state:
     st.session_state.wrong_answers = {}
+
+# 회원가입 / 로그인 처리
+if username in st.session_state.users:
+    # 기존 사용자: 비밀번호 확인
+    if password != st.session_state.users[username]:
+        st.error("비밀번호가 틀렸습니다.")
+        st.stop()
+else:
+    # 신규 사용자: 계정 생성
+    st.session_state.users[username] = password
+    st.success(f"새 사용자 '{username}'가 생성되었습니다!")
+
+# 사용자 단어장 및 오답 리스트 초기화
 if username not in st.session_state.wordbook:
     st.session_state.wordbook[username] = {}
 if username not in st.session_state.wrong_answers:
@@ -22,7 +39,7 @@ if username not in st.session_state.wrong_answers:
 user_wordbook = st.session_state.wordbook[username]
 user_wrong = st.session_state.wrong_answers[username]
 
-# ----------------- 단어 추가 -------------------
+# 단어 추가
 st.header("1. 단어 추가")
 group = st.text_input("단어장 이름", key="group")
 english = st.text_input("영어 단어", key="english")
@@ -36,7 +53,7 @@ if st.button("단어 추가"):
     else:
         st.warning("모든 항목을 입력해 주세요.")
 
-# ----------------- 단어 보기 -------------------
+# 단어 보기
 st.header("2. 단어 보기")
 if not user_wordbook:
     st.info("등록된 단어가 없습니다.")
@@ -52,7 +69,7 @@ else:
                 if st.button("★ 토글", key=f"flag_{group}_{i}_{username}"):
                     word["flagged"] = not word["flagged"]
 
-# ----------------- 테스트 종류 선택 -------------------
+# 테스트 선택
 st.header("3. 단어 테스트")
 if not user_wordbook:
     st.info("단어장을 먼저 추가해 주세요.")
@@ -93,7 +110,7 @@ else:
                         st.error(f"틀렸습니다. 정답은 '{question['english']}'입니다.")
                         user_wrong.append(question)
 
-# ----------------- 오답 복습 -------------------
+# 오답 복습
 st.header("4. 오답 복습")
 if not user_wrong:
     st.info("오답이 없습니다. 테스트를 먼저 진행해 보세요.")
