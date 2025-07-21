@@ -122,5 +122,6 @@ else:
         if review_input.strip().lower() == review_question['english'].lower():
             st.success("정답입니다! 오답 목록에서 제거됩니다.")
             user_wrong.remove(review_question)
+            save_data(data)  # 꼭 추가! 데이터 파일에 변경사항 저장
         else:
             st.error(f"틀렸습니다. 정답은 '{review_question['english']}'입니다.")
